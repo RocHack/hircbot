@@ -148,5 +148,10 @@ handle_line state (source:(command:args)) =
 
 handle_line_2 :: IRCState -> String -> String -> [String] -> EventReturn
 handle_line_2 state _ "PING" args = MkReturn [MkMessage "" "PONG" []] state
+handle_line_2 state _ "PRIVMSG" args =
+    let user:[msg] = args in
+        if (head (words msg)) == "!test"
+        then MkReturn [MkMessage "" "NOTICE" [user, "Your message was: " ++ msg]] state
+        else MkReturn [] state
 handle_line_2 state _ _ _ = MkReturn [] state
 
