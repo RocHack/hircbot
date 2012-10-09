@@ -17,18 +17,16 @@ main =
         ircNetInit
         args <- getArgs
         let argMap = parseCliArgs args
-            state = loadConfig "hircbot.ini" in
-                handleCliArgs argMap state
+            in do
+                state <- loadConfig
+                logLine state LogInfo "Welcome to HircBot. Configuration file loaded."
+                state <- handleCliArgs argMap state
+                state <- ircConnect state
+                logLine state LogInfo $ "Connected to " ++ (cfgHost . stateCfg $ state) ++ "."
+                state <- handleEvent state OnConnect
+                ircRecvLoop state handleMessage
+                where
+                    handleMessage :: HircState -> Message -> IO HircState
+                    handleMessage state m = handleEvent state $ OnRecv m
 
-handleCliArgs :: [(CliFlag, String)] -> HircState -> IO ()
-handleCliArgs ((key, val):rest) state =
-    handleCliArgs rest state -- TODO: currently ignores CLI args
-handleCliArgs [] state =
-    do
-        state <- ircConnect state
-        state <- handleEvent state OnConnect
-        ircRecvLoop state handleMessage
-        where
-            handleMessage :: HircState -> Message -> IO HircState
-            handleMessage state m = handleEvent state (OnRecv m)
 
