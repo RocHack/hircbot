@@ -71,7 +71,7 @@ ircSend' state m =
 respond :: HircState -> Source -> String -> IO HircState
 respond state src msg =
     do
-        logLine state LogInfo $ "[To: " ++ (replyTo src) ++ "] (ME) " ++ (curNick . stateCur $ state) ++ ": " ++ msg
+        logLine state LogInfo $ "[" ++ (replyTo src) ++ "] (ME) " ++ (curNick . stateCur $ state) ++ ": " ++ msg
         ircSend' state $ Message "" "PRIVMSG" [replyTo src, msg]
 
 handleEvent :: HircState -> EventType -> IO HircState
@@ -104,21 +104,38 @@ handleEvent state (OnRecv (Message src cmd args))
     | cmd == "PRIVMSG"
         = let user = readUser src
             in do
-                logLine state LogInfo $ "[To: " ++ (args !! 0) ++ "] " ++ (nick user) ++ ": " ++ (args !! 1)
+                logLine state LogInfo $ "[" ++ (args !! 0) ++ "] " ++ (nick user) ++ ": " ++ (args !! 1)
                 handleEvent state $ OnRecvChat $ Chat (mkSource user $ args !! 0) (args !! 1)
     | cmd == "NOTICE"
         = let user = readUser src
             in do
-                logLine state LogInfo $ "[To: " ++ (args !! 0) ++ "] (NOTICE) " ++ (nick user) ++ ": " ++ (args !! 1)
+                logLine state LogInfo $ "[" ++ (args !! 0) ++ "] (NOTICE) " ++ (nick user) ++ ": " ++ (args !! 1)
                 return state
     | cmd == "JOIN"
-        = do
-            logLine state LogInfo $ "Join: " ++ (head args)
-            return state
+        = let user = readUser src
+            in do
+                logLine state LogInfo $ "[" ++ (args !! 0) ++ "] Join: " ++ (nick user)
+                return state
+    | cmd == "PART"
+        = let user = readUser src
+            in do
+                logLine state LogInfo $ "[" ++ (args !! 0) ++ "] Part: " ++ (nick user) ++ " (" ++ (args !! 1) ++ ")"
+                return state
+    | cmd == "TOPIC"
+        = let user = readUser src
+            in do
+                logLine state LogInfo $ "[" ++ (args !! 0) ++ "] Topic by " ++ (nick user) ++ ": " ++ (args !! 1)
+                return state
+    | cmd == "QUIT"
+        = let user = readUser src
+            in do
+                logLine state LogInfo $ "Quit: " ++ (nick user) ++ " (" ++ (args !! 0) ++ ")"
+                return state
     | cmd == "MODE"
-        = do
-            logLine state LogInfo $ "Mode: " ++ (args !! 1)
-            return state
+        = let user = readUser src
+            in do
+                logLine state LogInfo $ "Mode: " ++ (nick user) ++ " " ++ (args !! 1) ++ " by " ++ (nick user)
+                return state
     | otherwise
         = do
             logLine state LogWarning $ "Unsupported message " ++ cmd ++ ". Arguments: " ++ (show args)
