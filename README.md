@@ -21,14 +21,14 @@ Features
 
 To Use
 ------
-1. Make sure you have required Haskell libraries:
+1. Set up Haskell:
 
-        cabal install network
-        cabal install split
+        # or equivalents for your distribution
+        yum install haskell-platform ghc-MissingH ghc-network
 
 2. Download to directory.
 
-4. Put settings in ~/.hircbot/cfg:
+3. Put settings in ~/.hircbot/cfg:
 
     Settings that are read (all lines must be in format "key = value"):
     - Server = IRC host name
@@ -39,7 +39,7 @@ To Use
     - RealName = IRC real name field
     - Channels = comma separated list of channels to join on connect (no spaces allowed)
 
-3. Make sure runnable:
+4. Make sure runnable:
 
         chmod +x HircBot.hs
 
